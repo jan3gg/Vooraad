@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Voorraadlijst</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --border: #e8e6e0;
+    --ink: #1a1a18;
+    --ink2: #6b6b65;
+    --ink3: #a0a09a;
+    --accent: #1a1a18;
+    --tag-bg: #f0ede8;
+    --vol-bg: #f5f3ef;
+    --green: #2a7d4f;
+    --green-bg: #edf7f1;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: white;
+    padding: 1.25rem 1rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .header h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .header-meta {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.5);
+    margin-top: 1px;
+  }
+  .total-badge {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  /* SEARCH */
+  .search-wrap {
+    position: relative;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  #search {
+    width: 100%;
+    padding: 0.65rem 0.75rem 0.65rem 2.2rem;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+  }
+  #search::placeholder { color: rgba(255,255,255,0.45); }
+
+  /* FILTER TABS */
+  .filter-wrap {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filter-wrap::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    background: var(--tag-bg);
+    border: none;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    color: var(--ink2);
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .filter-btn.active {
+    background: var(--ink);
+    color: white;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat {
+    flex: 1;
+    padding: 0.6rem 0;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-size: 1.1rem; font-weight: 600; }
+  .stat-label { font-size: 0.62rem; color: var(--ink3); margin-top: 1px; }
+
+  /* LIST */
+  .list {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .group-header {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    padding: 0.9rem 0.25rem 0.35rem;
+  }
+
+  .item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+  }
+
+  .item-main {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0.9rem;
+    gap: 0.75rem;
+  }
+
+  .item-total {
+    font-size: 1.35rem;
+    font-weight: 700;
+    min-width: 36px;
+    text-align: center;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .item-info { flex: 1; min-width: 0; }
+  .item-name {
+    font-size: 0.88rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--ink);
+    margin-bottom: 0.25rem;
+  }
+  .item-cat {
+    font-size: 0.65rem;
+    color: var(--ink3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .item-vols {
+    border-top: 1px solid var(--border);
+    padding: 0.5rem 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    background: var(--vol-bg);
+  }
+
+  .vol-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.78rem;
+  }
+  .vol-pill .vol-qty {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .vol-pill .vol-size {
+    color: var(--ink2);
+    font-size: 0.72rem;
+  }
+
+  /* Multi-volume indicator */
+  .multi-badge {
+    background: var(--green-bg);
+    color: var(--green);
+    font-size: 0.6rem;
+    padding: 1px 6px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink3);
+    font-size: 0.9rem;
+  }
+
+  /* Sort bar */
+  .sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--ink3);
+  }
+  .sort-bar select {
+    font-size: 0.75rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--ink);
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-family: inherit;
+    outline: none;
+  }
+
+  #result-count {
+    font-size: 0.72rem;
+    color: var(--ink3);
+    margin-left: auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>Voorraadlijst</h1>
+      <div class="header-meta">Dubbele producten samengevoegd per volume</div>
+    </div>
+    <div class="total-badge" id="headerTotal"></div>
+  </div>
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="search" id="search" placeholder="Zoek product..." autocomplete="off" autocorrect="off">
+  </div>
+</div>
+
+<div class="filter-wrap" id="filterWrap"></div>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div class="sort-bar">
+  <span>Sorteren:</span>
+  <select id="sortSelect">
+    <option value="qty-desc">Aantal ↓</option>
+    <option value="qty-asc">Aantal ↑</option>
+    <option value="az">A → Z</option>
+    <option value="za">Z → A</option>
+  </select>
+  <span id="result-count"></span>
+</div>
+
+<div class="list" id="list"></div>
+
+<script>
+const DATA = [{"name":"Gordon's London Dry Gin","cat":"Gin","total":218,"volumes":[{"vol":"5cl","qty":198},{"vol":"35cl","qty":8},{"vol":"70cl","qty":12}]},{"name":"Edinburgh Gin Plum & Vanilla Liqueur","cat":"Likeur","total":114,"volumes":[{"vol":"5cl","qty":114}]},{"name":"Martini Rosso","cat":"Vermout","total":111,"volumes":[{"vol":"6cl","qty":111}]},{"name":"Ketel One Vodka","cat":"Wodka","total":103,"volumes":[{"vol":"5cl","qty":103}]},{"name":"Hendrick's Gin","cat":"Gin","total":88,"volumes":[{"vol":"5cl","qty":88}]},{"name":"Scapegrace Gold Gin","cat":"Gin","total":88,"volumes":[{"vol":"5cl","qty":88}]},{"name":"Bareksten Botanical Gin","cat":"Gin","total":86,"volumes":[{"vol":"5cl","qty":86}]},{"name":"Monkey 47 Schwarzwald Dry Gin","cat":"Gin","total":83,"volumes":[{"vol":"5cl","qty":83}]},{"name":"Conker Dorset Dry Gin","cat":"Gin","total":77,"volumes":[{"vol":"5cl","qty":77}]},{"name":"Poetic License Old Tom Gin","cat":"Gin","total":74,"volumes":[{"vol":"5cl","qty":74}]},{"name":"Johnnie Walker Red Label Whisky","cat":"Whisky","total":71,"volumes":[{"vol":"5cl","qty":61},{"vol":"1L","qty":10}]},{"name":"The Famous Grouse Whisky","cat":"Whisky","total":64,"volumes":[{"vol":"5cl","qty":62},{"vol":"20cl","qty":2}]},{"name":"Greenall's London Dry Gin","cat":"Gin","total":62,"volumes":[{"vol":"5cl","qty":62}]},{"name":"Wildjac Natural Botanical Spirit","cat":"Non-Alcoholic","total":62,"volumes":[{"vol":"5cl","qty":62}]},{"name":"Elephant London Dry Gin","cat":"Gin","total":61,"volumes":[{"vol":"5cl","qty":61}]},{"name":"Conker Cold Brew Coffee Liqueur","cat":"Likeur","total":51,"volumes":[{"vol":"5cl","qty":51}]},{"name":"Monkey Shoulder Blended Malt Scotch Whisky","cat":"Whisky","total":50,"volumes":[{"vol":"5cl","qty":50}]},{"name":"Tanqueray Flor de Sevilla Gin","cat":"Gin","total":43,"volumes":[{"vol":"5cl","qty":43}]},{"name":"Edinburgh Gin Rhubarb & Ginger Liqueur","cat":"Likeur","total":37,"volumes":[{"vol":"5cl","qty":37}]},{"name":"Tito's Handmade Vodka","cat":"Wodka","total":34,"volumes":[{"vol":"5cl","qty":32},{"vol":"70cl","qty":2}]},{"name":"Bareksten Navy Strength Gin","cat":"Gin","total":33,"volumes":[{"vol":"5cl","qty":33}]},{"name":"Pienaar & Son Empire Gin","cat":"Gin","total":33,"volumes":[{"vol":"5cl","qty":33}]},{"name":"Cointreau","cat":"Likeur","total":32,"volumes":[{"vol":"5cl","qty":32}]},{"name":"Jägermeister","cat":"Likeur","total":32,"volumes":[{"vol":"4cl","qty":32}]},{"name":"The Glenlivet Founders Reserve Whisky","cat":"Whisky","total":32,"volumes":[{"vol":"5cl","qty":32}]},{"name":"Edinburgh Gin Raspberry Liqueur","cat":"Likeur","total":32,"volumes":[{"vol":"5cl","qty":27},{"vol":"50cl","qty":5}]},{"name":"Lisch Swedish Vodka","cat":"Wodka","total":30,"volumes":[{"vol":"70cl","qty":30}]},{"name":"Grey Goose Vodka","cat":"Wodka","total":30,"volumes":[{"vol":"5cl","qty":30}]},{"name":"Proclamation Blended Irish Whiskey","cat":"Whisky","total":29,"volumes":[{"vol":"5cl","qty":29}]},{"name":"Bombay Sapphire London Dry Gin","cat":"Gin","total":29,"volumes":[{"vol":"5cl","qty":26},{"vol":"20cl","qty":3}]},{"name":"Bareksten Old Tom Gin","cat":"Gin","total":28,"volumes":[{"vol":"5cl","qty":28}]},{"name":"Filliers Dry Gin 28 Classic","cat":"Gin","total":27,"volumes":[{"vol":"5cl","qty":21},{"vol":"50cl","qty":6}]},{"name":"Pienaar & Son Orient Gin","cat":"Gin","total":26,"volumes":[{"vol":"5cl","qty":26}]},{"name":"Nolet's Silver Dry Gin","cat":"Gin","total":24,"volumes":[{"vol":"10cl","qty":24}]},{"name":"Edinburgh Gin Strawberry & Pink Peppercorn Liqueur","cat":"Likeur","total":23,"volumes":[{"vol":"5cl","qty":23}]},{"name":"Jameson Irish Whiskey","cat":"Whisky","total":22,"volumes":[{"vol":"5cl","qty":22}]},{"name":"Edinburgh Gin Elderflower Liqueur","cat":"Likeur","total":22,"volumes":[{"vol":"5cl","qty":20},{"vol":"50cl","qty":2}]},{"name":"Edinburgh Gin Mulled Gin Liqueur","cat":"Likeur","total":21,"volumes":[{"vol":"5cl","qty":21}]},{"name":"Brouwerij Verhofstede Elixir Christiane Likeur","cat":"Likeur","total":21,"volumes":[{"vol":"5cl","qty":6},{"vol":"20cl","qty":3},{"vol":"70cl","qty":12}]},{"name":"Edinburgh Gin Apple & Spice Liqueur","cat":"Likeur","total":20,"volumes":[{"vol":"5cl","qty":20}]},{"name":"Villa Massa Amaretto","cat":"Likeur","total":20,"volumes":[{"vol":"5cl","qty":20}]},{"name":"Belvedere Vodka","cat":"Wodka","total":20,"volumes":[{"vol":"5cl","qty":20}]},{"name":"58 Gin Distilled Sloe","cat":"Gin","total":20,"volumes":[{"vol":"50cl","qty":20}]},{"name":"Citadelle Gin","cat":"Gin","total":19,"volumes":[{"vol":"5cl","qty":19}]},{"name":"Portobello Road London Dry No. 171 Gin","cat":"Gin","total":19,"volumes":[{"vol":"5cl","qty":19}]},{"name":"6 O'Clock Sloe Gin","cat":"Gin","total":17,"volumes":[{"vol":"5cl","qty":17}]},{"name":"Mermaid Salt Vodka","cat":"Wodka","total":17,"volumes":[{"vol":"5cl","qty":15},{"vol":"70cl","qty":2}]},{"name":"Brouwerij Verhofstede Appel Jenever","cat":"Jenever","total":17,"volumes":[{"vol":"5cl","qty":8},{"vol":"20cl","qty":2},{"vol":"70cl","qty":7}]},{"name":"Edinburgh Gin Pomegranate & Rose Liqueur","cat":"Likeur","total":16,"volumes":[{"vol":"5cl","qty":16}]},{"name":"Brouwerij Verhofstede Citroen Jenever","cat":"Jenever","total":16,"volumes":[{"vol":"5cl","qty":6},{"vol":"20cl","qty":2},{"vol":"70cl","qty":8}]},{"name":"Poetic License Northern Dry Gin","cat":"Gin","total":15,"volumes":[{"vol":"5cl","qty":15}]},{"name":"V2C Barrel Aged Dutch Dry Gin","cat":"Gin","total":15,"volumes":[{"vol":"5cl","qty":15}]},{"name":"Wildjac Natural Dry Gin","cat":"Gin","total":15,"volumes":[{"vol":"5cl","qty":13},{"vol":"70cl","qty":2}]},{"name":"Beefeater London Dry Gin","cat":"Gin","total":15,"volumes":[{"vol":"5cl","qty":11},{"vol":"1L","qty":4}]},{"name":"Buss No. 509 Master Cut Gin","cat":"Gin","total":14,"volumes":[{"vol":"4cl","qty":14}]},{"name":"Conker Minis Cadeaupakket","cat":"Barware","total":14,"volumes":[{"vol":"4 x 5cl","qty":14}]},{"name":"Gin 1689 Dutch Dry Gin","cat":"Gin","total":13,"volumes":[{"vol":"5cl","qty":13}]},{"name":"Smirnoff No. 55 Black Vodka","cat":"Wodka","total":13,"volumes":[{"vol":"70cl","qty":13}]},{"name":"Buss No. 509 Raspberry Gin","cat":"Gin","total":13,"volumes":[{"vol":"4cl","qty":13}]},{"name":"Aluna Coconut Peach and Pomelo Liqueur","cat":"Likeur","total":13,"volumes":[{"vol":"5cl","qty":13}]},{"name":"Van Kleef Gin","cat":"Gin","total":13,"volumes":[{"vol":"5cl","qty":11},{"vol":"50cl","qty":2}]},{"name":"Tia Maria Cold Brew Coffee Liqueur","cat":"Likeur","total":13,"volumes":[{"vol":"5cl","qty":3},{"vol":"70cl","qty":10}]},{"name":"Brouwerij Verhofstede Edelweiss Gin","cat":"Gin","total":13,"volumes":[{"vol":"5cl","qty":5},{"vol":"50cl","qty":6},{"vol":"1L","qty":2}]},{"name":"Buss No. 509 White Rain Gin","cat":"Gin","total":12,"volumes":[{"vol":"4cl","qty":12}]},{"name":"Gustav Arctic Cassis Liqueur","cat":"Likeur","total":12,"volumes":[{"vol":"50cl","qty":12}]},{"name":"Wildjac Honey Spiced Rum","cat":"Rum","total":12,"volumes":[{"vol":"5cl","qty":12}]},{"name":"Texelse TX Wodka","cat":"Wodka","total":11,"volumes":[{"vol":"5cl","qty":11}]},{"name":"Bloedlemoen Handcrafted Gin","cat":"Gin","total":11,"volumes":[{"vol":"5cl","qty":11}]},{"name":"6 O'Clock Brunel Gin","cat":"Gin","total":11,"volumes":[{"vol":"5cl","qty":9},{"vol":"70cl","qty":2}]},{"name":"Whitley Neill Original Gin","cat":"Gin","total":10,"volumes":[{"vol":"5cl","qty":10}]},{"name":"58 Gin London Dry","cat":"Gin","total":10,"volumes":[{"vol":"50cl","qty":10}]},{"name":"Crafter's London Dry Gin","cat":"Gin","total":10,"volumes":[{"vol":"4cl","qty":10}]},{"name":"Klopman Janneman Gin","cat":"Gin","total":10,"volumes":[{"vol":"5cl","qty":10}]},{"name":"Chase Original Potato Vodka","cat":"Wodka","total":10,"volumes":[{"vol":"5cl","qty":10}]},{"name":"Rummieclub Orange Rum Liqueur","cat":"Likeur","total":10,"volumes":[{"vol":"5cl","qty":10}]},{"name":"Bacardi Carta Blanca Rum","cat":"Rum","total":10,"volumes":[{"vol":"5cl","qty":10}]},{"name":"Brighton Gin Seaside Strength","cat":"Gin","total":10,"volumes":[{"vol":"5cl","qty":6},{"vol":"70cl","qty":4}]},{"name":"Poetic License Graceful Vodka","cat":"Wodka","total":9,"volumes":[{"vol":"5cl","qty":9}]},{"name":"Brouwerij Verhofstede Pink Gin","cat":"Gin","total":9,"volumes":[{"vol":"50cl","qty":9}]},{"name":"Martin Miller's Gin","cat":"Gin","total":9,"volumes":[{"vol":"5cl","qty":9}]},{"name":"Chivas Regal 12 Year Whisky","cat":"Whisky","total":9,"volumes":[{"vol":"5cl","qty":9}]},{"name":"Finlandia Grapefruit Vodka","cat":"Wodka","total":9,"volumes":[{"vol":"1L","qty":9}]},{"name":"Balcones Baby Blue Corn Whisky","cat":"Whisky","total":9,"volumes":[{"vol":"5cl","qty":9}]},{"name":"Teeling Single Grain Irish Whiskey","cat":"Whisky","total":9,"volumes":[{"vol":"5cl","qty":9}]},{"name":"The Famous Grouse Sherry Cask Finish Whisky","cat":"Whisky","total":9,"volumes":[{"vol":"1L","qty":9}]},{"name":"Ron Esclavo XO Cask Rum","cat":"Rum","total":9,"volumes":[{"vol":"5cl","qty":9}]},{"name":"Brouwerij Verhofstede Limon de la Casita","cat":"Likeur","total":9,"volumes":[{"vol":"5cl","qty":6},{"vol":"20cl","qty":3}]},{"name":"Tanqueray London Dry Gin","cat":"Gin","total":9,"volumes":[{"vol":"5cl","qty":5},{"vol":"35cl","qty":4}]},{"name":"Damrak Gin","cat":"Gin","total":8,"volumes":[{"vol":"5cl","qty":8}]},{"name":"Scapegrace Classic Gin","cat":"Gin","total":8,"volumes":[{"vol":"20cl","qty":8}]},{"name":"Buss No. 509 Pink Grapefruit Gin","cat":"Gin","total":8,"volumes":[{"vol":"4cl","qty":8}]},{"name":"The Lemon Spirit","cat":"Likeur","total":8,"volumes":[{"vol":"4cl","qty":8}]},{"name":"Moët & Chandon Ice Imperial Rosé Champagne","cat":"Champagne","total":8,"volumes":[{"vol":"75cl","qty":8}]},{"name":"Rummieclub Rum Coffee Liqueur","cat":"Likeur","total":8,"volumes":[{"vol":"5cl","qty":8}]},{"name":"Abstinence Aperitif Non-Alcoholic Lemon","cat":"Non-Alcoholic","total":8,"volumes":[{"vol":"5cl","qty":8}]},{"name":"Balcones Texas Single Malt Whisky","cat":"Whisky","total":8,"volumes":[{"vol":"5cl","qty":8}]},{"name":"Johnnie Walker Black Label Whisky","cat":"Whisky","total":8,"volumes":[{"vol":"5cl","qty":8}]},{"name":"Gin 1689","cat":"Gin","total":8,"volumes":[{"vol":"10cl","qty":8}]},{"name":"Sierra Reposado Tequila","cat":"Tequila","total":8,"volumes":[{"vol":"5cl","qty":8}]},{"name":"Villa Massa Limoncello","cat":"Likeur","total":8,"volumes":[{"vol":"5cl","qty":8}]},{"name":"Van Kleef Peper Wodka","cat":"Wodka","total":8,"volumes":[{"vol":"5cl","qty":8}]},{"name":"Vørdings Genever","cat":"Jenever","total":8,"volumes":[{"vol":"20cl","qty":6},{"vol":"70cl","qty":2}]},{"name":"Bar Professional Bottle Opener Stainless Steel","cat":"Barware","total":7,"volumes":[{"vol":"—","qty":7}]},{"name":"Lonewolf Cactus & Lime Gin","cat":"Gin","total":7,"volumes":[{"vol":"5cl","qty":7}]},{"name":"Midnight London Dry Gin","cat":"Gin","total":7,"volumes":[{"vol":"50cl","qty":7}]},{"name":"Rynbende Vintage Genever","cat":"Jenever","total":7,"volumes":[{"vol":"70cl","qty":7}]},{"name":"Campari Bitter 4cl","cat":"Likeur","total":7,"volumes":[{"vol":"4cl","qty":7}]},{"name":"Finlandia Blackcurrant Vodka","cat":"Wodka","total":7,"volumes":[{"vol":"1L","qty":7}]},{"name":"Minke Irish Vodka","cat":"Wodka","total":7,"volumes":[{"vol":"5cl","qty":7}]},{"name":"Malibu Original","cat":"Likeur","total":7,"volumes":[{"vol":"5cl","qty":7}]},{"name":"The Botanist Islay Dry Gin","cat":"Gin","total":6,"volumes":[{"vol":"20cl","qty":6}]},{"name":"Brouwerij Verhofstede Edelweiss Noten Likeur","cat":"Likeur","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Hernö Old Tom Gin","cat":"Gin","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Poseidon Dry Gin","cat":"Gin","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Van Kleef Arancello Likeur","cat":"Likeur","total":6,"volumes":[{"vol":"20cl","qty":6}]},{"name":"Abstinence Cape Citrus Non-Alcoholic Spirit","cat":"Non-Alcoholic","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Speakeasy Japanese Jigger Copper","cat":"Barware","total":6,"volumes":[{"vol":"25/50ml","qty":6}]},{"name":"Brouwerij Verhofstede Hop Jenever","cat":"Jenever","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Ron Esclavo XO Rum","cat":"Rum","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Tamosi Blended Rum","cat":"Rum","total":6,"volumes":[{"vol":"70cl","qty":6}]},{"name":"Ron Esclavo 12 Years Rum","cat":"Rum","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Poetic License Baked Apple & Salted Caramel Gin Liqueur","cat":"Likeur","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Campari Bitter 5cl","cat":"Likeur","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Crafter's Wild Forest Gin","cat":"Gin","total":6,"volumes":[{"vol":"4cl","qty":6}]},{"name":"Licor 43 Original","cat":"Likeur","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"The Rascal Gin","cat":"Gin","total":6,"volumes":[{"vol":"5cl","qty":6}]},{"name":"Sir Edmond Gin","cat":"Gin","total":6,"volumes":[{"vol":"10cl","qty":6}]},{"name":"Smirnoff No. 21 Vodka","cat":"Wodka","total":6,"volumes":[{"vol":"5cl","qty":3},{"vol":"70cl","qty":3}]},{"name":"Abstinence Cape Spice Non-Alcoholic Spirit","cat":"Non-Alcoholic","total":5,"volumes":[{"vol":"5cl","qty":5}]},{"name":"Speakeasy Japanese Jigger Gold","cat":"Barware","total":5,"volumes":[{"vol":"25/50ml","qty":5}]},{"name":"Lisch 57% Navy Strength Swedish Vodka","cat":"Wodka","total":5,"volumes":[{"vol":"70cl","qty":5}]},{"name":"Ketel 1 Jenever","cat":"Jenever","total":5,"volumes":[{"vol":"5cl","qty":5}]},{"name":"Bareksten Gin Tasting Collection","cat":"Gin","total":5,"volumes":[{"vol":"3 x 5cl","qty":5}]},{"name":"Rummieclub Honey Rum","cat":"Rum","total":5,"volumes":[{"vol":"5cl","qty":5}]},{"name":"Blacks Golden Rum","cat":"Rum","total":5,"volumes":[{"vol":"70cl","qty":5}]},{"name":"Gustav Arctic Vodka","cat":"Wodka","total":5,"volumes":[{"vol":"5cl","qty":5}]},{"name":"Bar Professional Bottle Opener Copper","cat":"Barware","total":5,"volumes":[{"vol":"—","qty":5}]},{"name":"Tanqueray Rangpur Lime Gin","cat":"Gin","total":5,"volumes":[{"vol":"70cl","qty":5}]},{"name":"Hooghoudt Aged Genever 5 Years","cat":"Jenever","total":5,"volumes":[{"vol":"70cl","qty":5}]},{"name":"Finlandia Lime Vodka","cat":"Wodka","total":5,"volumes":[{"vol":"1L","qty":5}]},{"name":"Safari","cat":"Likeur","total":5,"volumes":[{"vol":"70cl","qty":5}]},{"name":"Courvoisier VSOP Cognac","cat":"Cognac","total":5,"volumes":[{"vol":"5cl","qty":5}]},{"name":"Coquerel Liqueur de Pomme au Calvados","cat":"Likeur","total":5,"volumes":[{"vol":"50cl","qty":5}]},{"name":"Save The Queen Elderflower Liqueur","cat":"Likeur","total":5,"volumes":[{"vol":"50cl","qty":5}]},{"name":"Speakeasy Parisian Cocktail Shaker Copper","cat":"Barware","total":5,"volumes":[{"vol":"650ml","qty":5}]},{"name":"Hooghoudt Sweet Spiced Genever","cat":"Jenever","total":5,"volumes":[{"vol":"5cl","qty":5}]},{"name":"Whitley Neill Blood Orange Gin","cat":"Gin","total":5,"volumes":[{"vol":"70cl","qty":5}]},{"name":"Grace O'Malley Heather Infused Gin","cat":"Gin","total":5,"volumes":[{"vol":"5cl","qty":5}]},{"name":"Bols Zeer Oude Genever","cat":"Jenever","total":5,"volumes":[{"vol":"50cl","qty":3},{"vol":"1L","qty":2}]},{"name":"Scapegrace Vodka","cat":"Wodka","total":4,"volumes":[{"vol":"70cl","qty":4}]},{"name":"Save The Queen Rum","cat":"Rum","total":4,"volumes":[{"vol":"50cl","qty":4}]},{"name":"The Famous Grouse Ruby Cask Whisky","cat":"Whisky","total":4,"volumes":[{"vol":"70cl","qty":4}]},{"name":"Speakeasy Hawthorn Strainer Copper","cat":"Barware","total":4,"volumes":[{"vol":"—","qty":4}]},{"name":"Beefeater London Garden Gin","cat":"Gin","total":4,"volumes":[{"vol":"70cl","qty":4}]},{"name":"Speakeasy Cobbler Cocktail Shaker Gold","cat":"Barware","total":4,"volumes":[{"vol":"500ml","qty":4}]},{"name":"Speakeasy Parisian Cocktail Shaker Gold","cat":"Barware","total":4,"volumes":[{"vol":"650ml","qty":4}]},{"name":"V2C Classic Dutch Dry Gin","cat":"Gin","total":4,"volumes":[{"vol":"5cl","qty":4}]},{"name":"Bloedlemoen Handcrafted Amber Gin","cat":"Gin","total":4,"volumes":[{"vol":"5cl","qty":4}]},{"name":"Whitley Neill Distiller's Cut Gin","cat":"Gin","total":4,"volumes":[{"vol":"70cl","qty":4}]},{"name":"Masthouse Whisky Tasting Journal Gift Set","cat":"Whisky","total":4,"volumes":[{"vol":"10cl","qty":4}]},{"name":"La Hechicera Rum","cat":"Rum","total":4,"volumes":[{"vol":"5cl","qty":4}]},{"name":"Lonewolf Gin","cat":"Gin","total":4,"volumes":[{"vol":"5cl","qty":4}]},{"name":"Dik & Schil Bakkie Pleur Koffielikeur","cat":"Likeur","total":4,"volumes":[{"vol":"5cl","qty":4}]},{"name":"Silent Pool Mist Liquid Garnish Kaffir Lime","cat":"Gin","total":4,"volumes":[{"vol":"3cl","qty":4}]},{"name":"Funky Pump XO Rum","cat":"Rum","total":4,"volumes":[{"vol":"50cl","qty":4}]},{"name":"Birds Adventure Spirit","cat":"Likeur","total":4,"volumes":[{"vol":"50cl","qty":4}]},{"name":"Sausage Tree Pure Irish Vodka","cat":"Wodka","total":4,"volumes":[{"vol":"70cl","qty":4}]},{"name":"Whitley Neill Brazilian Lime Gin","cat":"Gin","total":4,"volumes":[{"vol":"70cl","qty":4}]},{"name":"Scapegrace Gold Dry Gin","cat":"Gin","total":4,"volumes":[{"vol":"20cl","qty":4}]},{"name":"Brighton Gin Pavilion Strength","cat":"Gin","total":4,"volumes":[{"vol":"5cl","qty":4}]},{"name":"Bar Professional Drinking Straws Copper 4pk","cat":"Barware","total":4,"volumes":[{"vol":"—","qty":4}]},{"name":"Schodu Gin","cat":"Gin","total":4,"volumes":[{"vol":"5cl","qty":4}]},{"name":"Seedlip Garden 108 Herbal","cat":"Non-Alcoholic","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Finlandia Cranberry Vodka","cat":"Wodka","total":3,"volumes":[{"vol":"1L","qty":3}]},{"name":"Captain Morgan White Rum","cat":"Rum","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"The House of Botanicals ABZ Dry Gin","cat":"Gin","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Klopman Spaanse Furie Gin","cat":"Gin","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"Dingle Vodka","cat":"Wodka","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Soplica Orzecha w Czekoladzie","cat":"Likeur","total":3,"volumes":[{"vol":"50cl","qty":3}]},{"name":"Flügel Minis","cat":"Wodka","total":3,"volumes":[{"vol":"10 x 2cl","qty":3}]},{"name":"Gin Bien","cat":"Gin","total":3,"volumes":[{"vol":"20cl","qty":3}]},{"name":"Bar Professional Muddler Plastic","cat":"Barware","total":3,"volumes":[{"vol":"—","qty":3}]},{"name":"Seedlip Grove 42 Citrus","cat":"Non-Alcoholic","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Pampero Especial Rum","cat":"Rum","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Captain Morgan Original Spiced Gold Rum","cat":"Rum","total":3,"volumes":[{"vol":"20cl","qty":3}]},{"name":"Woodland Sauerland Dry Gin","cat":"Gin","total":3,"volumes":[{"vol":"50cl","qty":3}]},{"name":"Woodland Sauerland Dry Gin Navy Strength","cat":"Gin","total":3,"volumes":[{"vol":"50cl","qty":3}]},{"name":"King of Soho Variorum Gin","cat":"Gin","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Malfy Originale Gin","cat":"Gin","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"Soplica Malinowa","cat":"Likeur","total":3,"volumes":[{"vol":"50cl","qty":3}]},{"name":"Martini Prosecco","cat":"Champagne","total":3,"volumes":[{"vol":"20cl","qty":3}]},{"name":"Fillier's Dry Gin 28 1928 Tribute Gin","cat":"Gin","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"Routa Arctic Rum","cat":"Rum","total":3,"volumes":[{"vol":"50cl","qty":3}]},{"name":"Pimm's No.1","cat":"Likeur","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Copper Dog Whisky","cat":"Whisky","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Bacardi Aged Discovery Pack","cat":"Rum","total":3,"volumes":[{"vol":"3 x 10cl","qty":3}]},{"name":"The House of Botanicals Maple Old Tom Gin","cat":"Gin","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Martini Bellini","cat":"Champagne","total":3,"volumes":[{"vol":"75cl","qty":3}]},{"name":"Pickering's Strawberry & Black Pepper Gin","cat":"Gin","total":3,"volumes":[{"vol":"20cl","qty":3}]},{"name":"Willem's Wermoed Dutch Dry","cat":"Vermout","total":3,"volumes":[{"vol":"75cl","qty":3}]},{"name":"Gustav Arctic Cranberry Liqueur","cat":"Likeur","total":3,"volumes":[{"vol":"50cl","qty":3}]},{"name":"Lebensstern Pink Gin","cat":"Gin","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"Malibu Strawberry","cat":"Likeur","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Bar Professional Ice Cube Tray 3cm","cat":"Barware","total":3,"volumes":[{"vol":"—","qty":3}]},{"name":"Glenmorangie The Original 10 Year Whisky","cat":"Whisky","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"World's End Light Blend Rum","cat":"Rum","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"World's End Navy 57 Rum","cat":"Rum","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Royal Leerdam Glide Shot Glass 3.5cl 6pk","cat":"Barware","total":3,"volumes":[{"vol":"6 x 3.5cl","qty":3}]},{"name":"De Kuyper Clover Club Cocktail","cat":"Cocktails","total":3,"volumes":[{"vol":"50cl","qty":3}]},{"name":"Pusser's Rum Blue Label","cat":"Rum","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"Mates Gold Rum","cat":"Rum","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"Bar Professional Barspoon Masher Copper","cat":"Barware","total":3,"volumes":[{"vol":"—","qty":3}]},{"name":"Monin Blue Curaçao Liqueur","cat":"Likeur","total":3,"volumes":[{"vol":"70cl","qty":3}]},{"name":"Bella Rose Cold Brew Coffee Liqueur","cat":"Likeur","total":3,"volumes":[{"vol":"50cl","qty":3}]},{"name":"Hayman's Old Tom Gin","cat":"Gin","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"Wessex English Sloe Gin","cat":"Gin","total":3,"volumes":[{"vol":"5cl","qty":3}]},{"name":"Bar Professional Fine Mesh Strainer 7mm","cat":"Barware","total":3,"volumes":[{"vol":"—","qty":3}]},{"name":"Speakeasy Hawthorn Strainer Gold","cat":"Barware","total":3,"volumes":[{"vol":"—","qty":3}]},{"name":"Barrel Bomb Aged Dry Gin","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Bar Professional Muddler Stainless Steel","cat":"Barware","total":2,"volumes":[{"vol":"—","qty":2}]},{"name":"24 Days of Rum Cadeaupakket","cat":"Rum","total":2,"volumes":[{"vol":"24 x 2cl","qty":2}]},{"name":"Aluna Coconut Rum","cat":"Rum","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Rutte Barrel Aged Genever","cat":"Jenever","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Bar Professional Ice Tong Copper","cat":"Barware","total":2,"volumes":[{"vol":"—","qty":2}]},{"name":"Nemiroff Bold Orange Vodka","cat":"Wodka","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Bar Professional Drinking Straws Glass 14cm","cat":"Barware","total":2,"volumes":[{"vol":"—","qty":2}]},{"name":"Doragrossa Selezioni Bitter","cat":"Bitters","total":2,"volumes":[{"vol":"1L","qty":2}]},{"name":"Mates Indonesian Arrak","cat":"Rum","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Grace O'Malley Blended Irish Whiskey","cat":"Whisky","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Haymans English Cordial Gin","cat":"Gin","total":2,"volumes":[{"vol":"50cl","qty":2}]},{"name":"Hennessy VS Cognac Magnum","cat":"Cognac","total":2,"volumes":[{"vol":"1.5L","qty":2}]},{"name":"Dik & Schil Orangecello","cat":"Likeur","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Bar Professional Tumblers Copper Set","cat":"Barware","total":2,"volumes":[{"vol":"—","qty":2}]},{"name":"Dik & Schil Limoncello","cat":"Likeur","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Nemiroff Honey Pepper Vodka","cat":"Wodka","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Beefeater London Blackberry Gin","cat":"Gin","total":2,"volumes":[{"vol":"1L","qty":2}]},{"name":"Ketel 1 Signature Blend Jenever","cat":"Jenever","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Arbikie Strawberry Vodka","cat":"Wodka","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Heffron 5Y Panama Heritage Rum","cat":"Rum","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Martell Blue Swift","cat":"Cognac","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Doragrossa Selezioni Vermouth Blanco","cat":"Vermout","total":2,"volumes":[{"vol":"1L","qty":2}]},{"name":"City Gin - Rotterdam Gin","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Willem's Wermoed Royal Orange","cat":"Vermout","total":2,"volumes":[{"vol":"75cl","qty":2}]},{"name":"Monin Honey Syrup","cat":"Syrups","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Riga Black Balsam Cherry Liqueur","cat":"Likeur","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Merlet VS Cognac","cat":"Cognac","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Lebensstern Gin","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Heffron 10Y Panama Premium Rum","cat":"Rum","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Jose Cuervo Especial Silver Tequila","cat":"Tequila","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Porter's Modern Classic Gin","cat":"Gin","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Luxardo Limoncello Liqueur","cat":"Likeur","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Chivas Regal Proefset","cat":"Whisky","total":2,"volumes":[{"vol":"3 x 5cl","qty":2}]},{"name":"The Famous Grouse Smoky Black Whisky","cat":"Whisky","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Captain Morgan Sliced Apple Spiced Rum","cat":"Rum","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Hooghoudt Zacht en Moutige Korenwijn Jenever","cat":"Jenever","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Bar Professional Copper Mule Mug Aluminium","cat":"Barware","total":2,"volumes":[{"vol":"—","qty":2}]},{"name":"V2C Navy Strength Gin","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Rummieclub Overproof White Rum","cat":"Rum","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Malibu Lime","cat":"Rum","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Filliers Dry Gin 28 1928 Tribute Gin","cat":"Gin","total":2,"volumes":[{"vol":"50cl","qty":2}]},{"name":"Finlandia Nordic Berries Vodka","cat":"Wodka","total":2,"volumes":[{"vol":"1L","qty":2}]},{"name":"Eden Mill Original Gin","cat":"Gin","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Jim Beam Peach","cat":"Whisky","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Cinzano Vermouth Extra Dry","cat":"Vermout","total":2,"volumes":[{"vol":"1L","qty":2}]},{"name":"Edinburgh Gin The Classic","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Wildjac Damson & Raspberry Gin","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Grey Goose L'Orange Vodka","cat":"Wodka","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Diplomatico Planas White Rum","cat":"Rum","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Wessex Gooseberry & Elderflower Gin","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Filliers Dry Gin 28 Tangerine","cat":"Gin","total":2,"volumes":[{"vol":"50cl","qty":2}]},{"name":"Speakeasy Barspoon Trident Gold","cat":"Barware","total":2,"volumes":[{"vol":"—","qty":2}]},{"name":"Hermit Dutch Coastal Gin","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Speakeasy Parisian Cocktail Shaker Stainless Steel","cat":"Barware","total":2,"volumes":[{"vol":"650ml","qty":2}]},{"name":"Le Gin de Christian Drouin","cat":"Gin","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Bar Professional Drinking Straws Glass 20cm","cat":"Barware","total":2,"volumes":[{"vol":"—","qty":2}]},{"name":"Plymouth Gin","cat":"Gin","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Jose Cuervo Especial Gold Tequila","cat":"Tequila","total":2,"volumes":[{"vol":"1L","qty":2}]},{"name":"Bar Professional Copper Mule Mug","cat":"Barware","total":2,"volumes":[{"vol":"—","qty":2}]},{"name":"Hooghoudt Steranijslikeur","cat":"Likeur","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"MOM Rocks Gin","cat":"Gin","total":2,"volumes":[{"vol":"70cl","qty":2}]},{"name":"Brecon Special Reserve Gin","cat":"Gin","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Ron Esclavo Gran Reserva Rum","cat":"Rum","total":2,"volumes":[{"vol":"5cl","qty":2}]},{"name":"Ramsbury Single Estate Vodka","cat":"Wodka","total":2,"volumes":[{"vol":"70cl","qty":2}]}];
+
+const CATS = ['Alles', ...['Gin','Whisky','Wodka','Rum','Likeur','Jenever','Non-Alcoholic','Cognac','Tequila','Vermout','Champagne','Barware','Overig']];
+
+let activeFilter = 'Alles';
+let searchTerm = '';
+let sortMode = 'qty-desc';
+
+// Stats
+const totalItems = DATA.length;
+const totalQty = DATA.reduce((s, d) => s + d.total, 0);
+
+document.getElementById('headerTotal').textContent = totalQty + ' stuks';
+
+// Category counts
+const catCounts = {};
+DATA.forEach(d => {
+  const c = CATS.slice(1).includes(d.cat) ? d.cat : 'Overig';
+  catCounts[c] = (catCounts[c] || 0) + 1;
+});
+
+// Build filter tabs
+const fw = document.getElementById('filterWrap');
+CATS.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn' + (cat === 'Alles' ? ' active' : '');
+  const count = cat === 'Alles' ? totalItems : (catCounts[cat] || 0);
+  btn.textContent = cat + (count ? ' ' + count : '');
+  btn.onclick = () => {
+    activeFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  };
+  fw.appendChild(btn);
+});
+
+// Sort
+document.getElementById('sortSelect').onchange = e => { sortMode = e.target.value; render(); };
+
+// Search
+document.getElementById('search').oninput = e => { searchTerm = e.target.value.toLowerCase(); render(); };
+
+function getFiltered() {
+  let items = DATA.filter(d => {
+    const inCat = activeFilter === 'Alles' || d.cat === activeFilter || (activeFilter === 'Overig' && !CATS.slice(1, -1).includes(d.cat));
+    const inSearch = !searchTerm || d.name.toLowerCase().includes(searchTerm) || d.cat.toLowerCase().includes(searchTerm);
+    return inCat && inSearch;
+  });
+  if (sortMode === 'qty-desc') items.sort((a,b) => b.total - a.total);
+  else if (sortMode === 'qty-asc') items.sort((a,b) => a.total - b.total);
+  else if (sortMode === 'az') items.sort((a,b) => a.name.localeCompare(b.name));
+  else if (sortMode === 'za') items.sort((a,b) => b.name.localeCompare(a.name));
+  return items;
+}
+
+function render() {
+  const items = getFiltered();
+  const list = document.getElementById('list');
+  const filteredQty = items.reduce((s,d) => s+d.total, 0);
+
+  // Stats
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><div class="stat-num">${items.length}</div><div class="stat-label">Producten</div></div>
+    <div class="stat"><div class="stat-num">${filteredQty}</div><div class="stat-label">Stuks totaal</div></div>
+    <div class="stat"><div class="stat-num">${items.filter(d=>d.volumes.length>1).length}</div><div class="stat-label">Multi-volume</div></div>
+  `;
+
+  document.getElementById('result-count').textContent = items.length + ' van ' + totalItems + ' producten';
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty">Geen producten gevonden</div>';
+    return;
+  }
+
+  let html = '';
+  items.forEach(d => {
+    const multiVol = d.volumes.length > 1;
+    const volPills = d.volumes.map(v =>
+      `<div class="vol-pill"><span class="vol-qty">${v.qty}×</span><span class="vol-size">${v.vol}</span></div>`
+    ).join('');
+
+    html += `
+      <div class="item">
+        <div class="item-main">
+          <div class="item-total">${d.total}</div>
+          <div class="item-info">
+            <div class="item-name">${d.name}${multiVol ? ' <span class="multi-badge">'+d.volumes.length+' maten</span>' : ''}</div>
+            <div class="item-cat">${d.cat}</div>
+          </div>
+        </div>
+        <div class="item-vols">${volPills}</div>
+      </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+render();
+</script>
+</body>
+</html>
